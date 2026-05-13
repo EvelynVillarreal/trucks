@@ -2,39 +2,36 @@
 
 namespace App;
 
-use PDO;
-use PDOException;
+use Illuminate\Database\Capsule\Manager as Capsule;
 
 class Database
 {
-    private static ?PDO $instance = null;
+    private static bool $initialized = false;
 
-    public static function getConnection(): PDO
+    public static function boot(): void
     {
-        if (self::$instance === null) {
-            $config = self::getDatabaseConfig();
-            $dsn = sprintf(
-                '%s:host=%s;port=%s;dbname=%s;sslmode=require',
-                $config['driver'],
-                $config['host'],
-                $config['port'],
-                $config['database']
-            );
-
-            try {
-                self::$instance = new PDO($dsn, $config['username'], $config['password'], [
-                    PDO::ATTR_ERRMODE            => PDO::ERRMODE_EXCEPTION,
-                    PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-                    PDO::ATTR_EMULATE_PREPARES   => false,
-                ]);
-            } catch (PDOException $e) {
-                http_response_code(500);
-                echo json_encode(['error' => 'Database connection failed: ' . $e->getMessage()]);
-                exit;
-            }
+        if (self::$initialized) {
+            return;
         }
 
-        return self::$instance;
+        $config = self::getDatabaseConfig();
+
+        $capsule = new Capsule;
+        $capsule->addConnection([
+            'driver'   => $config['driver'],
+            'host'     => $config['host'],
+            'port'     => $config['port'],
+            'database' => $config['database'],
+            'username' => $config['username'],
+            'password' => $config['password'],
+            'charset'  => 'utf8',
+            'prefix'   => '',
+        ]);
+
+        $capsule->setAsGlobal();
+        $capsule->bootEloquent();
+
+        self::$initialized = true;
     }
 
     private static function getDatabaseConfig(): array
@@ -76,7 +73,6 @@ class Database
     private static function getEnv(string $key, string $default = ''): string
     {
         $value = $_ENV[$key] ?? getenv($key);
-
         return $value !== false ? (string) $value : $default;
     }
 }
