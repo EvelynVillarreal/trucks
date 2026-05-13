@@ -44,10 +44,10 @@ class Database
 
         return [
             'driver'   => self::getEnv('DB_CONNECTION', 'pgsql'),
-            'host'     => self::getEnv('DB_HOST', 'db.lezbfnhzsnzcthrabnoc.supabase.co'),
-            'port'     => self::getEnv('DB_PORT', '5432'),
+            'host'     => self::getEnv('DB_HOST', 'aws-1-us-east-1.pooler.supabase.com'),
+            'port'     => self::getEnv('DB_PORT', '6543'),
             'database' => self::getEnv('DB_DATABASE', 'postgres'),
-            'username' => self::getEnv('DB_USERNAME', 'postgres'),
+            'username' => self::getEnv('DB_USERNAME', 'postgres.lezbfnhzsnzcthrabnoc'),
             'password' => self::getEnv('DB_PASSWORD', 'screamitoutloud'),
         ];
     }
@@ -60,8 +60,14 @@ class Database
             throw new \RuntimeException('Invalid DATABASE_URL format. Use postgres://user:pass@host:port/database');
         }
 
+        $driver = $parts['scheme'] ?? 'pgsql';
+
+        if (in_array($driver, ['postgresql', 'postgres'], true)) {
+            $driver = 'pgsql';
+        }
+
         return [
-            'driver'   => $parts['scheme'] ?? 'pgsql',
+            'driver'   => $driver,
             'host'     => $parts['host'],
             'port'     => $parts['port'] ?? '5432',
             'database' => ltrim($parts['path'], '/'),
