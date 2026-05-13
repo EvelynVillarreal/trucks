@@ -11,6 +11,8 @@ COPY . .
 
 RUN composer install --no-dev --optimize-autoloader
 
+RUN ln -s public/api api && ln -s public/css css && ln -s public/js js
+
 ENV DB_CONNECTION=pgsql
 ENV DB_HOST=db.lezbfnhzsnzcthrabnoc.supabase.co
 ENV DB_PORT=5432
@@ -21,4 +23,4 @@ ENV DB_SCHEMA=public
 ENV DATABASE_URL="postgresql://postgres:screamitoutloud@db.lezbfnhzsnzcthrabnoc.supabase.co:5432/postgres"
 
 EXPOSE 8080
-CMD ["php", "-S", "0.0.0.0:8080", "-t", "public/"]
+CMD ["php", "-S", "0.0.0.0:8080"]
